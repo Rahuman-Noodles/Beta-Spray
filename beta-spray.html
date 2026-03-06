@@ -1,0 +1,2260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Beta Spray — Bouldering, Social</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@300;400;500&family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --black:   #0E0D0C;
+      --deep:    #181614;
+      --surface: #222019;
+      --card:    #2A2720;
+      --border:  #3A3630;
+      --chalk:   #F0EBE0;
+      --chalk2:  #BDB8AD;
+      --chalk3:  #7A756C;
+      --orange:  #E8531A;
+      --orange-h:#F26230;
+      --teal:    #1ABDA8;
+      --yellow:  #F0C040;
+      --red:     #E8281A;
+      --green:   #2ABD6E;
+      --purple:  #9B5DE5;
+    }
+
+    html, body { height: 100%; overflow: hidden; }
+
+    body {
+      background: var(--black);
+      color: var(--chalk);
+      font-family: 'Instrument Sans', sans-serif;
+    }
+
+    /* ── GRAIN ── */
+    body::after {
+      content: '';
+      position: fixed; inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none; z-index: 9000; opacity: 0.6;
+    }
+
+    /* ══════════════════════════
+       APP SHELL
+    ══════════════════════════ */
+    .app {
+      display: grid;
+      grid-template-columns: 220px 1fr;
+      grid-template-rows: 1fr 64px;
+      height: 100vh;
+    }
+
+    /* ══════════════════════════
+       SIDEBAR
+    ══════════════════════════ */
+    .sidebar {
+      grid-row: 1 / 3;
+      background: var(--deep);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .sidebar-brand {
+      padding: 1.5rem 1.4rem 1.2rem;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+
+    .brand-icon {
+      width: 34px; height: 34px;
+      background: var(--orange);
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.1rem;
+      flex-shrink: 0;
+    }
+
+    .brand-name {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.5rem;
+      letter-spacing: 0.05em;
+      color: var(--chalk);
+      line-height: 1;
+    }
+
+    .brand-name span { color: var(--orange); }
+
+    .sidebar-user {
+      padding: 1rem 1.4rem;
+      display: flex;
+      align-items: center;
+      gap: 0.7rem;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+
+    .user-avatar {
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      background: var(--orange);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: white;
+      flex-shrink: 0;
+    }
+
+    .user-info-name { font-size: 0.82rem; font-weight: 700; }
+    .user-info-grade {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.65rem;
+      color: var(--orange);
+      letter-spacing: 0.05em;
+    }
+
+    .sidebar-nav {
+      flex: 1;
+      padding: 0.75rem 0;
+      overflow-y: auto;
+    }
+
+    .sidebar-nav::-webkit-scrollbar { display: none; }
+
+    .nav-section-label {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.58rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--chalk3);
+      padding: 0.6rem 1.4rem 0.3rem;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.6rem 1.4rem;
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--chalk3);
+      cursor: pointer;
+      border-left: 3px solid transparent;
+      transition: all 0.15s;
+    }
+
+    .nav-item:hover { color: var(--chalk); background: rgba(255,255,255,0.04); }
+    .nav-item.active { color: var(--chalk); border-left-color: var(--orange); background: rgba(232,83,26,0.08); }
+    .nav-icon { font-size: 1rem; width: 20px; text-align: center; }
+
+    .sidebar-stats {
+      padding: 1rem 1.4rem;
+      border-top: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+
+    .stats-label {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.58rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--chalk3);
+      margin-bottom: 0.6rem;
+    }
+
+    .stats-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 0.4rem;
+    }
+
+    .stat-item { text-align: center; }
+    .stat-num {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.3rem;
+      color: var(--orange);
+      line-height: 1;
+    }
+
+    .stat-lbl {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.55rem;
+      color: var(--chalk3);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    /* ══════════════════════════
+       MAIN
+    ══════════════════════════ */
+    .main {
+      background: var(--black);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Topbar */
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.9rem 1.5rem;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+      background: var(--deep);
+    }
+
+    .topbar-tabs {
+      display: flex;
+      gap: 0.25rem;
+      background: var(--surface);
+      padding: 0.25rem;
+      border-radius: 8px;
+    }
+
+    .tab-btn {
+      padding: 0.4rem 1rem;
+      border-radius: 6px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      cursor: pointer;
+      border: none;
+      background: transparent;
+      color: var(--chalk3);
+      font-family: 'Instrument Sans', sans-serif;
+      transition: all 0.15s;
+      letter-spacing: 0.02em;
+    }
+
+    .tab-btn:hover { color: var(--chalk); }
+    .tab-btn.active { background: var(--orange); color: white; }
+
+    .topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .topbar-search {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 0.4rem 0.75rem;
+    }
+
+    .topbar-search input {
+      background: none;
+      border: none;
+      outline: none;
+      color: var(--chalk);
+      font-size: 0.78rem;
+      width: 140px;
+      font-family: 'Instrument Sans', sans-serif;
+    }
+
+    .topbar-search input::placeholder { color: var(--chalk3); }
+
+    .icon-btn {
+      width: 34px; height: 34px;
+      border-radius: 8px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+      color: var(--chalk2);
+      transition: all 0.15s;
+      font-size: 0.95rem;
+    }
+
+    .icon-btn:hover { background: var(--card); color: var(--chalk); }
+
+    /* Scroll area */
+    .main-scroll {
+      flex: 1;
+      overflow-y: auto;
+      padding: 1.5rem;
+    }
+
+    .main-scroll::-webkit-scrollbar { width: 5px; }
+    .main-scroll::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+    /* ══════════════════════════
+       SCREENS
+    ══════════════════════════ */
+    .screen { display: none; animation: fadeIn 0.25s ease; }
+    .screen.active { display: block; }
+
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+    /* ══════════════════════════
+       FEED SCREEN
+    ══════════════════════════ */
+    .feed-grid {
+      display: grid;
+      grid-template-columns: 1fr 300px;
+      gap: 1.5rem;
+    }
+
+    .feed-compose {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1rem;
+      margin-bottom: 1rem;
+      cursor: pointer;
+      transition: border-color 0.15s;
+    }
+
+    .feed-compose:hover { border-color: var(--orange); }
+
+    .compose-row {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .compose-placeholder {
+      font-size: 0.85rem;
+      color: var(--chalk3);
+    }
+
+    .compose-actions {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .compose-action {
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--chalk3);
+      padding: 0.3rem 0.65rem;
+      border-radius: 4px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .compose-action:hover { color: var(--orange); border-color: var(--orange); }
+
+    /* Post card */
+    .post-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      margin-bottom: 0.75rem;
+      overflow: hidden;
+      transition: border-color 0.15s;
+    }
+
+    .post-card:hover { border-color: rgba(232,83,26,0.3); }
+
+    .post-header {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.9rem 1rem 0.6rem;
+    }
+
+    .post-avatar {
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: white;
+      flex-shrink: 0;
+    }
+
+    .post-username { font-size: 0.85rem; font-weight: 700; }
+    .post-meta { font-size: 0.7rem; color: var(--chalk3); margin-top: 1px; }
+
+    .post-grade-badge {
+      margin-left: auto;
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1rem;
+      letter-spacing: 0.05em;
+      padding: 0.15rem 0.6rem;
+      border-radius: 4px;
+      color: white;
+    }
+
+    /* ══════════════════════════
+       BETA CLIP — full video player simulation
+    ══════════════════════════ */
+    .beta-clip {
+      margin: 0 1rem 0.75rem;
+      border-radius: 8px;
+      overflow: hidden;
+      position: relative;
+      background: #111;
+      aspect-ratio: 16/9;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Real thumbnail image */
+    .beta-clip-thumb {
+      position: absolute;
+      inset: 0;
+      background-size: cover;
+      background-position: center;
+      transition: transform 0.4s ease, filter 0.3s ease;
+      filter: brightness(0.82) saturate(1.1);
+    }
+
+    .beta-clip:hover .beta-clip-thumb {
+      transform: scale(1.03);
+      filter: brightness(0.7) saturate(1.2);
+    }
+
+    /* Scan-line texture over thumbnail */
+    .beta-clip-scanlines {
+      position: absolute;
+      inset: 0;
+      background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 2px,
+        rgba(0,0,0,0.06) 2px,
+        rgba(0,0,0,0.06) 4px
+      );
+      pointer-events: none;
+    }
+
+    /* Dark gradient bottom bar */
+    .beta-clip-gradient {
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      height: 55%;
+      background: linear-gradient(to top, rgba(0,0,0,0.85) 0%, transparent 100%);
+      pointer-events: none;
+    }
+
+    /* Overlay (hover to reveal) */
+    .beta-clip-overlay {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0.4rem;
+      transition: background 0.2s;
+    }
+
+    .beta-clip:hover .beta-clip-overlay {
+      background: rgba(0,0,0,0.15);
+    }
+
+    .play-circle {
+      width: 52px; height: 52px;
+      border-radius: 50%;
+      background: rgba(232,83,26,0.92);
+      backdrop-filter: blur(4px);
+      border: 2px solid rgba(255,255,255,0.2);
+      display: flex; align-items: center; justify-content: center;
+      transition: transform 0.18s cubic-bezier(0.34,1.4,0.64,1), background 0.15s, box-shadow 0.15s;
+      box-shadow: 0 4px 24px rgba(232,83,26,0.4);
+    }
+
+    .beta-clip:hover .play-circle {
+      transform: scale(1.12);
+      background: var(--orange);
+      box-shadow: 0 6px 32px rgba(232,83,26,0.65);
+    }
+
+    /* Animated EQ bars (fake "audio waveform") — shown on hover */
+    .clip-eq {
+      display: flex;
+      gap: 2px;
+      align-items: flex-end;
+      height: 14px;
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+
+    .beta-clip:hover .clip-eq { opacity: 1; }
+
+    .clip-eq span {
+      width: 3px;
+      border-radius: 2px;
+      background: var(--orange);
+      animation: eqBar 0.6s ease-in-out infinite alternate;
+    }
+
+    .clip-eq span:nth-child(1) { height: 6px;  animation-delay: 0s;    animation-duration: 0.5s; }
+    .clip-eq span:nth-child(2) { height: 12px; animation-delay: 0.1s;  animation-duration: 0.7s; }
+    .clip-eq span:nth-child(3) { height: 8px;  animation-delay: 0.05s; animation-duration: 0.4s; }
+    .clip-eq span:nth-child(4) { height: 14px; animation-delay: 0.15s; animation-duration: 0.6s; }
+    .clip-eq span:nth-child(5) { height: 5px;  animation-delay: 0.2s;  animation-duration: 0.5s; }
+
+    @keyframes eqBar {
+      from { transform: scaleY(0.3); }
+      to   { transform: scaleY(1); }
+    }
+
+    /* Bottom bar: scrubber + time + duration */
+    .clip-bottom-bar {
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      padding: 0.45rem 0.75rem 0.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
+    }
+
+    .clip-scrubber-wrap {
+      width: 100%;
+      height: 3px;
+      background: rgba(255,255,255,0.2);
+      border-radius: 2px;
+      overflow: visible;
+      position: relative;
+    }
+
+    .clip-scrubber-fill {
+      height: 100%;
+      border-radius: 2px;
+      background: var(--orange);
+      position: relative;
+      transition: width 0.1s linear;
+    }
+
+    .clip-scrubber-fill::after {
+      content: '';
+      position: absolute;
+      right: -4px; top: -3px;
+      width: 9px; height: 9px;
+      border-radius: 50%;
+      background: white;
+      opacity: 0;
+      transition: opacity 0.15s;
+    }
+
+    .beta-clip:hover .clip-scrubber-fill::after { opacity: 1; }
+
+    .clip-time-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .clip-time {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.6rem;
+      color: rgba(255,255,255,0.75);
+      letter-spacing: 0.05em;
+    }
+
+    .clip-hd-badge {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.55rem;
+      letter-spacing: 0.08em;
+      border: 1px solid rgba(255,255,255,0.4);
+      padding: 0.05rem 0.3rem;
+      border-radius: 2px;
+      color: rgba(255,255,255,0.6);
+    }
+
+    .clip-route-tag {
+      position: absolute;
+      top: 0.5rem; left: 0.5rem;
+      background: rgba(0,0,0,0.72);
+      backdrop-filter: blur(4px);
+      border-radius: 4px;
+      padding: 0.25rem 0.5rem;
+      font-size: 0.66rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 0.3rem;
+    }
+
+    /* LIVE dot badge */
+    .clip-live-badge {
+      position: absolute;
+      top: 0.5rem; right: 0.5rem;
+      background: #E8281A;
+      border-radius: 3px;
+      padding: 0.15rem 0.45rem;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.58rem;
+      letter-spacing: 0.1em;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 0.3rem;
+    }
+
+    .live-dot {
+      width: 5px; height: 5px;
+      border-radius: 50%;
+      background: white;
+      animation: livePulse 1.2s ease-in-out infinite;
+    }
+
+    @keyframes livePulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+
+    /* ── VIDEO MODAL ── */
+    .video-modal-overlay {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.92);
+      backdrop-filter: blur(10px);
+      z-index: 800;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .video-modal-overlay.open { display: flex; }
+
+    .video-modal-inner {
+      width: min(90vw, 800px);
+      animation: modalIn 0.28s cubic-bezier(0.34,1.2,0.64,1);
+    }
+
+    .video-modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 0.75rem;
+    }
+
+    .video-modal-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.3rem;
+      letter-spacing: 0.06em;
+    }
+
+    .video-modal-meta {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.65rem;
+      color: var(--chalk3);
+      margin-top: 0.15rem;
+    }
+
+    .video-close-btn {
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--chalk2);
+      font-size: 1.1rem;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.15s;
+    }
+
+    .video-close-btn:hover { background: var(--card); color: var(--chalk); }
+
+    .video-iframe-wrap {
+      position: relative;
+      padding-bottom: 56.25%;
+      border-radius: 10px;
+      overflow: hidden;
+      background: #000;
+    }
+
+    .video-iframe-wrap iframe {
+      position: absolute;
+      inset: 0;
+      width: 100%; height: 100%;
+      border: none;
+    }
+
+    .video-modal-tags {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      margin-top: 0.6rem;
+    }
+
+    .post-caption {
+      padding: 0 1rem 0.6rem;
+      font-size: 0.85rem;
+      line-height: 1.55;
+      color: rgba(240,235,224,0.85);
+    }
+
+    .post-tags {
+      padding: 0 1rem 0.75rem;
+      display: flex;
+      gap: 0.35rem;
+      flex-wrap: wrap;
+    }
+
+    .post-tag {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.62rem;
+      letter-spacing: 0.05em;
+      color: var(--orange);
+      background: rgba(232,83,26,0.12);
+      border: 1px solid rgba(232,83,26,0.25);
+      padding: 0.15rem 0.5rem;
+      border-radius: 3px;
+    }
+
+    .post-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+      padding: 0.6rem 1rem;
+      border-top: 1px solid var(--border);
+    }
+
+    .post-action-btn {
+      display: flex;
+      align-items: center;
+      gap: 0.3rem;
+      background: none;
+      border: none;
+      color: var(--chalk3);
+      font-size: 0.78rem;
+      font-weight: 700;
+      font-family: 'Instrument Sans', sans-serif;
+      cursor: pointer;
+      padding: 0.35rem 0.6rem;
+      border-radius: 6px;
+      transition: all 0.15s;
+    }
+
+    .post-action-btn:hover { color: var(--chalk); background: rgba(255,255,255,0.06); }
+    .post-action-btn.active { color: var(--orange); }
+
+    /* Right rail */
+    .right-rail { display: flex; flex-direction: column; gap: 1rem; }
+
+    .rail-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1rem;
+    }
+
+    .rail-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1rem;
+      letter-spacing: 0.06em;
+      color: var(--chalk2);
+      margin-bottom: 0.75rem;
+    }
+
+    .trending-route {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.5rem 0;
+      border-bottom: 1px solid var(--border);
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .trending-route:last-child { border-bottom: none; }
+    .trending-route:hover { background: rgba(255,255,255,0.03); border-radius: 6px; padding-left: 0.3rem; }
+
+    .route-color-dot {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .route-name { font-size: 0.8rem; font-weight: 700; flex: 1; }
+    .route-grade {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 0.95rem;
+      letter-spacing: 0.05em;
+    }
+
+    .route-sends {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.6rem;
+      color: var(--chalk3);
+    }
+
+    /* Suggested climbers */
+    .suggested-climber {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      padding: 0.4rem 0;
+    }
+
+    .sug-avatar {
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: white;
+      flex-shrink: 0;
+    }
+
+    .sug-name { font-size: 0.78rem; font-weight: 700; }
+    .sug-grade { font-family: 'DM Mono', monospace; font-size: 0.62rem; color: var(--orange); }
+
+    .follow-btn {
+      margin-left: auto;
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: 100px;
+      padding: 0.25rem 0.65rem;
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: var(--chalk2);
+      cursor: pointer;
+      font-family: 'Instrument Sans', sans-serif;
+      transition: all 0.15s;
+    }
+
+    .follow-btn:hover { border-color: var(--orange); color: var(--orange); }
+    .follow-btn.following { background: var(--orange); border-color: var(--orange); color: white; }
+
+    /* ══════════════════════════
+       LOGBOOK SCREEN
+    ══════════════════════════ */
+    .logbook-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1.2rem;
+    }
+
+    .screen-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.8rem;
+      letter-spacing: 0.05em;
+    }
+
+    .log-btn {
+      background: var(--orange);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 0.5rem 1.1rem;
+      font-size: 0.82rem;
+      font-weight: 700;
+      font-family: 'Instrument Sans', sans-serif;
+      cursor: pointer;
+      transition: background 0.15s, transform 0.1s;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .log-btn:hover { background: var(--orange-h); transform: translateY(-1px); }
+
+    /* Grade pyramid */
+    .pyramid-section {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1.2rem;
+      margin-bottom: 1rem;
+    }
+
+    .pyramid-title {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--chalk3);
+      margin-bottom: 1rem;
+    }
+
+    .pyramid-row {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .pyramid-grade {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 0.9rem;
+      letter-spacing: 0.05em;
+      width: 28px;
+      text-align: right;
+      flex-shrink: 0;
+    }
+
+    .pyramid-bar-wrap {
+      flex: 1;
+      height: 22px;
+      background: var(--surface);
+      border-radius: 4px;
+      overflow: hidden;
+      cursor: pointer;
+      position: relative;
+    }
+
+    .pyramid-bar {
+      height: 100%;
+      border-radius: 4px;
+      transition: width 0.6s cubic-bezier(0.34,1.1,0.64,1);
+      display: flex;
+      align-items: center;
+      padding: 0 0.5rem;
+    }
+
+    .pyramid-bar-label {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.6rem;
+      letter-spacing: 0.06em;
+      color: rgba(255,255,255,0.8);
+      white-space: nowrap;
+    }
+
+    .pyramid-count {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.65rem;
+      color: var(--chalk3);
+      width: 50px;
+      text-align: right;
+      flex-shrink: 0;
+    }
+
+    /* Recent sends table */
+    .sends-table {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    .sends-table-header {
+      display: grid;
+      grid-template-columns: 2fr 80px 80px 100px 60px;
+      padding: 0.6rem 1rem;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .th {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.58rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--chalk3);
+    }
+
+    .send-row {
+      display: grid;
+      grid-template-columns: 2fr 80px 80px 100px 60px;
+      padding: 0.7rem 1rem;
+      border-bottom: 1px solid var(--border);
+      cursor: pointer;
+      transition: background 0.15s;
+      align-items: center;
+    }
+
+    .send-row:last-child { border-bottom: none; }
+    .send-row:hover { background: rgba(255,255,255,0.03); }
+
+    .send-name { font-size: 0.82rem; font-weight: 700; }
+    .send-location { font-size: 0.7rem; color: var(--chalk3); margin-top: 1px; }
+
+    .send-grade-pill {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 0.88rem;
+      letter-spacing: 0.05em;
+      padding: 0.15rem 0.5rem;
+      border-radius: 4px;
+      color: white;
+      display: inline-block;
+    }
+
+    .send-style {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.65rem;
+      color: var(--chalk2);
+    }
+
+    .send-date {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.65rem;
+      color: var(--chalk3);
+    }
+
+    .send-attempts {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.65rem;
+      color: var(--chalk3);
+    }
+
+    /* ══════════════════════════
+       DISCOVER SCREEN
+    ══════════════════════════ */
+    .gym-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .gym-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .gym-card:hover { border-color: rgba(232,83,26,0.4); transform: translateY(-2px); }
+
+    .gym-card-hero {
+      height: 100px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2.5rem;
+      position: relative;
+    }
+
+    .gym-card-body { padding: 0.9rem; }
+    .gym-name { font-size: 0.92rem; font-weight: 700; margin-bottom: 0.2rem; }
+    .gym-meta { font-size: 0.72rem; color: var(--chalk3); margin-bottom: 0.6rem; }
+
+    .gym-stats-row {
+      display: flex;
+      gap: 0.75rem;
+    }
+
+    .gym-stat-item { font-size: 0.72rem; }
+    .gym-stat-val { font-weight: 700; color: var(--orange); }
+
+    .gym-reset-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25rem;
+      background: rgba(26,189,168,0.15);
+      border: 1px solid rgba(26,189,168,0.3);
+      color: var(--teal);
+      font-family: 'DM Mono', monospace;
+      font-size: 0.6rem;
+      letter-spacing: 0.06em;
+      padding: 0.15rem 0.45rem;
+      border-radius: 3px;
+      margin-top: 0.4rem;
+    }
+
+    /* ══════════════════════════
+       PROFILE SCREEN
+    ══════════════════════════ */
+    .profile-hero {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1.5rem;
+      margin-bottom: 1rem;
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      gap: 1.2rem;
+      align-items: center;
+    }
+
+    .profile-avatar-lg {
+      width: 72px; height: 72px;
+      border-radius: 50%;
+      background: var(--orange);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: white;
+      border: 3px solid var(--orange);
+    }
+
+    .profile-name {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.5rem;
+      letter-spacing: 0.05em;
+      margin-bottom: 0.2rem;
+    }
+
+    .profile-handle { font-size: 0.8rem; color: var(--chalk3); margin-bottom: 0.5rem; }
+
+    .profile-bio { font-size: 0.82rem; color: var(--chalk2); line-height: 1.5; }
+
+    .profile-stats-row {
+      display: flex;
+      gap: 1.5rem;
+    }
+
+    .pstat { text-align: center; }
+    .pstat-num {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.5rem;
+      color: var(--orange);
+      line-height: 1;
+    }
+    .pstat-lbl { font-size: 0.65rem; color: var(--chalk3); font-family: 'DM Mono', monospace; }
+
+    .grade-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1.2rem;
+    }
+
+    .grade-card-title {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.62rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--chalk3);
+      margin-bottom: 0.6rem;
+    }
+
+    .peak-grade {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 3rem;
+      color: var(--orange);
+      line-height: 1;
+    }
+
+    .peak-grade-sub { font-size: 0.75rem; color: var(--chalk3); margin-top: 0.2rem; }
+
+    .profile-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+
+    /* ══════════════════════════
+       BOTTOM NAV (mobile feel)
+    ══════════════════════════ */
+    .bottom-bar {
+      border-top: 1px solid var(--border);
+      background: var(--deep);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 1.5rem;
+    }
+
+    .bottom-bar-left {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.78rem;
+      color: var(--chalk3);
+    }
+
+    .streak-badge {
+      display: flex;
+      align-items: center;
+      gap: 0.3rem;
+      background: rgba(232,83,26,0.15);
+      border: 1px solid rgba(232,83,26,0.25);
+      border-radius: 100px;
+      padding: 0.25rem 0.65rem;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.05em;
+      color: var(--orange);
+    }
+
+    .bottom-bar-right {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .add-send-btn {
+      background: var(--orange);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 0.45rem 1rem;
+      font-size: 0.78rem;
+      font-weight: 700;
+      font-family: 'Instrument Sans', sans-serif;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+      transition: background 0.15s, transform 0.1s;
+    }
+
+    .add-send-btn:hover { background: var(--orange-h); transform: scale(1.02); }
+
+    /* ══════════════════════════
+       MODALS
+    ══════════════════════════ */
+    .modal-overlay {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.75);
+      backdrop-filter: blur(4px);
+      z-index: 500;
+      display: none;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal-overlay.open { display: flex; }
+
+    .modal {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 1.8rem;
+      width: 100%;
+      max-width: 460px;
+      animation: modalIn 0.25s cubic-bezier(0.34,1.3,0.64,1);
+    }
+
+    @keyframes modalIn { from { opacity: 0; transform: scale(0.93) translateY(16px); } to { opacity: 1; transform: none; } }
+
+    .modal-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.5rem;
+      letter-spacing: 0.05em;
+      margin-bottom: 1.2rem;
+    }
+
+    .modal-label {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.62rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--chalk3);
+      display: block;
+      margin-bottom: 0.35rem;
+    }
+
+    .modal-input, .modal-select {
+      width: 100%;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 0.65rem 0.9rem;
+      font-size: 0.88rem;
+      color: var(--chalk);
+      outline: none;
+      font-family: 'Instrument Sans', sans-serif;
+      margin-bottom: 0.9rem;
+      transition: border-color 0.15s;
+    }
+
+    .modal-input:focus, .modal-select:focus { border-color: var(--orange); }
+    .modal-input::placeholder { color: var(--chalk3); }
+    .modal-select option { background: var(--card); }
+
+    .modal-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+
+    .style-chips {
+      display: flex;
+      gap: 0.4rem;
+      flex-wrap: wrap;
+      margin-bottom: 0.9rem;
+    }
+
+    .style-chip {
+      padding: 0.35rem 0.75rem;
+      border-radius: 100px;
+      border: 1px solid var(--border);
+      font-size: 0.75rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.15s;
+      color: var(--chalk3);
+    }
+
+    .style-chip:hover { border-color: var(--orange); color: var(--orange); }
+    .style-chip.selected { background: var(--orange); border-color: var(--orange); color: white; }
+
+    .attempt-counter {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 0.9rem;
+    }
+
+    .attempt-btn {
+      width: 34px; height: 34px;
+      border-radius: 50%;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--chalk);
+      font-size: 1.1rem;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.15s;
+      font-family: 'Instrument Sans', sans-serif;
+    }
+
+    .attempt-btn:hover { background: var(--card); border-color: var(--orange); color: var(--orange); }
+
+    .attempt-num {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.8rem;
+      color: var(--orange);
+      min-width: 40px;
+      text-align: center;
+    }
+
+    .attempt-label { font-size: 0.78rem; color: var(--chalk3); }
+
+    .modal-btn-row {
+      display: flex;
+      gap: 0.75rem;
+      justify-content: flex-end;
+      margin-top: 0.5rem;
+    }
+
+    .modal-cancel {
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--chalk3);
+      font-size: 0.82rem;
+      font-weight: 700;
+      cursor: pointer;
+      padding: 0.55rem 1.1rem;
+      font-family: 'Instrument Sans', sans-serif;
+      transition: all 0.15s;
+    }
+
+    .modal-cancel:hover { color: var(--chalk); border-color: var(--chalk3); }
+
+    .modal-confirm {
+      background: var(--orange);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 0.55rem 1.4rem;
+      font-size: 0.82rem;
+      font-weight: 700;
+      font-family: 'Instrument Sans', sans-serif;
+      cursor: pointer;
+      transition: background 0.15s, transform 0.1s;
+    }
+
+    .modal-confirm:hover:not(:disabled) { background: var(--orange-h); transform: translateY(-1px); }
+    .modal-confirm:disabled { opacity: 0.35; cursor: not-allowed; }
+
+    /* ══════════════════════════
+       TOAST
+    ══════════════════════════ */
+    #toast {
+      position: fixed;
+      bottom: 80px;
+      left: 50%;
+      transform: translateX(-50%) translateY(12px);
+      background: var(--card);
+      border: 1px solid var(--border);
+      color: var(--chalk);
+      padding: 0.6rem 1.2rem;
+      border-radius: 100px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      opacity: 0;
+      transition: all 0.25s;
+      z-index: 2000;
+      pointer-events: none;
+      white-space: nowrap;
+    }
+
+    #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    /* ══════════════════════════
+       UTILS
+    ══════════════════════════ */
+    .section-heading {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1rem;
+      letter-spacing: 0.08em;
+      color: var(--chalk2);
+      margin-bottom: 0.75rem;
+    }
+  </style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- ══════════════════════════════
+       SIDEBAR
+  ══════════════════════════════ -->
+  <div class="sidebar">
+    <div class="sidebar-brand">
+      <div class="brand-icon">🧗</div>
+      <div class="brand-name">BETA<span>SPRAY</span></div>
+    </div>
+
+    <div class="sidebar-user">
+      <div class="user-avatar">R</div>
+      <div>
+        <div class="user-info-name">Rahul A.</div>
+        <div class="user-info-grade">V7 · 142 sends</div>
+      </div>
+    </div>
+
+    <div class="sidebar-nav">
+      <div class="nav-section-label">Main</div>
+      <div class="nav-item active" onclick="navTo('feed', this)">
+        <span class="nav-icon">📡</span> Feed
+      </div>
+      <div class="nav-item" onclick="navTo('logbook', this)">
+        <span class="nav-icon">📓</span> Logbook
+      </div>
+      <div class="nav-item" onclick="navTo('discover', this)">
+        <span class="nav-icon">🗺️</span> Discover Gyms
+      </div>
+      <div class="nav-item" onclick="navTo('profile', this)">
+        <span class="nav-icon">🧗</span> My Profile
+      </div>
+
+      <div class="nav-section-label" style="margin-top:0.5rem;">Following</div>
+      <div class="nav-item" onclick="showToast('📡 Loading @crimp_queen\'s feed…')">
+        <div class="user-avatar" style="width:24px;height:24px;font-size:0.6rem;background:#9B5DE5;">K</div>
+        crimp_queen
+      </div>
+      <div class="nav-item" onclick="showToast('📡 Loading @slab_master\'s feed…')">
+        <div class="user-avatar" style="width:24px;height:24px;font-size:0.6rem;background:#1ABDA8;">M</div>
+        slab_master
+      </div>
+      <div class="nav-item" onclick="showToast('📡 Loading @beta_bandit\'s feed…')">
+        <div class="user-avatar" style="width:24px;height:24px;font-size:0.6rem;background:#F0C040;color:#111;">J</div>
+        beta_bandit
+      </div>
+    </div>
+
+    <div class="sidebar-stats">
+      <div class="stats-label">Your Season</div>
+      <div class="stats-row">
+        <div class="stat-item">
+          <div class="stat-num">142</div>
+          <div class="stat-lbl">Sends</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-num">V7</div>
+          <div class="stat-lbl">Peak</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-num">23</div>
+          <div class="stat-lbl">Days</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════
+       MAIN CONTENT
+  ══════════════════════════════ -->
+  <div class="main">
+
+    <!-- Topbar -->
+    <div class="topbar">
+      <div class="topbar-tabs">
+        <button class="tab-btn active" id="tab-feed" onclick="navTo('feed', null, this)">Feed</button>
+        <button class="tab-btn" id="tab-logbook" onclick="navTo('logbook', null, this)">Logbook</button>
+        <button class="tab-btn" id="tab-discover" onclick="navTo('discover', null, this)">Discover</button>
+        <button class="tab-btn" id="tab-profile" onclick="navTo('profile', null, this)">Profile</button>
+      </div>
+
+      <div class="topbar-right">
+        <div class="topbar-search">
+          <span>🔍</span>
+          <input placeholder="Search routes, gyms, climbers…" oninput="handleSearch(this.value)"/>
+        </div>
+        <div class="icon-btn" onclick="showToast('🔔 3 new sends from people you follow!')">🔔</div>
+        <div class="icon-btn" onclick="openModal('logSendModal')">＋</div>
+      </div>
+    </div>
+
+    <!-- FEED SCREEN -->
+    <div class="main-scroll screen active" id="screen-feed">
+      <div class="feed-grid">
+        <div>
+          <!-- Compose -->
+          <div class="feed-compose" onclick="openModal('postBetaModal')">
+            <div class="compose-row">
+              <div class="user-avatar">R</div>
+              <span class="compose-placeholder">Share a beta clip or send…</span>
+            </div>
+            <div class="compose-actions">
+              <div class="compose-action">🎬 Beta Clip</div>
+              <div class="compose-action">✅ Log Send</div>
+              <div class="compose-action">❓ Ask Beta</div>
+            </div>
+          </div>
+
+          <!-- Feed posts -->
+          <div id="feedPosts"></div>
+        </div>
+
+        <!-- Right rail -->
+        <div class="right-rail">
+          <div class="rail-card">
+            <div class="rail-title">🔥 Trending Routes</div>
+            <div id="trendingRoutes"></div>
+          </div>
+          <div class="rail-card">
+            <div class="rail-title">👥 Suggested Climbers</div>
+            <div id="suggestedClimbers"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- LOGBOOK SCREEN -->
+    <div class="main-scroll screen" id="screen-logbook">
+      <div class="logbook-header">
+        <div class="screen-title">MY LOGBOOK</div>
+        <button class="log-btn" onclick="openModal('logSendModal')">＋ Log a Send</button>
+      </div>
+
+      <!-- Grade Pyramid -->
+      <div class="pyramid-section">
+        <div class="pyramid-title">Grade Pyramid — All Time</div>
+        <div id="gradePyramid"></div>
+      </div>
+
+      <!-- Recent sends -->
+      <div class="section-heading" style="margin-top:1rem;">Recent Sends</div>
+      <div class="sends-table">
+        <div class="sends-table-header">
+          <span class="th">Route</span>
+          <span class="th">Grade</span>
+          <span class="th">Style</span>
+          <span class="th">Date</span>
+          <span class="th">Tries</span>
+        </div>
+        <div id="sendsTable"></div>
+      </div>
+    </div>
+
+    <!-- DISCOVER SCREEN -->
+    <div class="main-scroll screen" id="screen-discover">
+      <div class="logbook-header">
+        <div class="screen-title">DISCOVER GYMS</div>
+        <div style="font-family:'DM Mono',monospace;font-size:0.7rem;color:var(--chalk3);">📍 New York, NY</div>
+      </div>
+      <div class="section-heading">Near You</div>
+      <div class="gym-grid" id="gymGrid"></div>
+    </div>
+
+    <!-- PROFILE SCREEN -->
+    <div class="main-scroll screen" id="screen-profile">
+      <div class="profile-hero">
+        <div class="profile-avatar-lg">R</div>
+        <div>
+          <div class="profile-name">RAHUL ARORA</div>
+          <div class="profile-handle">@rahul_sends · Brooklyn, NY</div>
+          <div class="profile-bio">Climbing 3 years. Obsessed with compression problems. Home gym: Brooklyn Boulders 🧗</div>
+        </div>
+        <div class="profile-stats-row">
+          <div class="pstat"><div class="pstat-num">142</div><div class="pstat-lbl">Sends</div></div>
+          <div class="pstat"><div class="pstat-num">34</div><div class="pstat-lbl">Followers</div></div>
+          <div class="pstat"><div class="pstat-num">29</div><div class="pstat-lbl">Following</div></div>
+        </div>
+      </div>
+
+      <div class="profile-grid">
+        <div class="grade-card">
+          <div class="grade-card-title">Peak Grade</div>
+          <div class="peak-grade">V7</div>
+          <div class="peak-grade-sub">Sent last week</div>
+        </div>
+        <div class="grade-card">
+          <div class="grade-card-title">Current Project</div>
+          <div class="peak-grade" style="font-size:2rem;line-height:1.2;">V8<br><span style="font-size:0.9rem;color:var(--chalk3);">Compression Crack</span></div>
+          <div class="peak-grade-sub">12 attempts</div>
+        </div>
+        <div class="grade-card">
+          <div class="grade-card-title">Session Streak</div>
+          <div class="peak-grade">🔥 23</div>
+          <div class="peak-grade-sub">days in a row</div>
+        </div>
+      </div>
+
+      <div style="margin-top:1rem;">
+        <div class="section-heading">Recent Beta Clips</div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:0.75rem;" id="profileClips"></div>
+      </div>
+    </div>
+
+  </div><!-- /main -->
+
+  <!-- Bottom bar -->
+  <div class="bottom-bar">
+    <div class="bottom-bar-left">
+      <div class="streak-badge">🔥 23-day streak</div>
+      <span style="font-size:0.75rem;">Keep it going!</span>
+    </div>
+    <div class="bottom-bar-right">
+      <button class="add-send-btn" onclick="openModal('logSendModal')">＋ Log Send</button>
+    </div>
+  </div>
+
+</div><!-- /app -->
+
+<!-- ══════════════════════════════
+     MODALS
+══════════════════════════════ -->
+
+<!-- Log Send Modal -->
+<div class="modal-overlay" id="logSendModal">
+  <div class="modal">
+    <div class="modal-title">Log a Send 🎉</div>
+    <label class="modal-label">Route Name</label>
+    <input class="modal-input" id="routeNameInput" placeholder="e.g. Compression Crack" oninput="validateLogModal()"/>
+
+    <div class="modal-row">
+      <div>
+        <label class="modal-label">Grade</label>
+        <select class="modal-select" id="gradeSelect" onchange="validateLogModal()">
+          <option value="">Select grade</option>
+          <option>V0</option><option>V1</option><option>V2</option><option>V3</option>
+          <option>V4</option><option>V5</option><option>V6</option><option>V7</option>
+          <option>V8</option><option>V9</option><option>V10</option>
+        </select>
+      </div>
+      <div>
+        <label class="modal-label">Gym / Crag</label>
+        <input class="modal-input" id="gymInput" placeholder="e.g. Brooklyn Boulders" oninput="validateLogModal()"/>
+      </div>
+    </div>
+
+    <label class="modal-label">Hold Style</label>
+    <div class="style-chips" id="styleChips">
+      <div class="style-chip" onclick="toggleChip(this)">Crimp</div>
+      <div class="style-chip" onclick="toggleChip(this)">Sloper</div>
+      <div class="style-chip" onclick="toggleChip(this)">Pinch</div>
+      <div class="style-chip" onclick="toggleChip(this)">Jug</div>
+      <div class="style-chip" onclick="toggleChip(this)">Pocket</div>
+      <div class="style-chip" onclick="toggleChip(this)">Compression</div>
+      <div class="style-chip" onclick="toggleChip(this)">Dynamic</div>
+      <div class="style-chip" onclick="toggleChip(this)">Slab</div>
+    </div>
+
+    <label class="modal-label">Attempts</label>
+    <div class="attempt-counter">
+      <button class="attempt-btn" onclick="changeAttempts(-1)">−</button>
+      <div class="attempt-num" id="attemptNum">1</div>
+      <button class="attempt-btn" onclick="changeAttempts(1)">+</button>
+      <span class="attempt-label">attempts to send</span>
+    </div>
+
+    <label class="modal-label">Notes (optional)</label>
+    <input class="modal-input" id="notesInput" placeholder="Any beta or notes…"/>
+
+    <div class="modal-btn-row">
+      <button class="modal-cancel" onclick="closeModal('logSendModal')">Cancel</button>
+      <button class="modal-confirm" id="logConfirmBtn" disabled onclick="submitSend()">Log It 🎉</button>
+    </div>
+  </div>
+</div>
+
+<!-- Post Beta Modal -->
+<div class="modal-overlay" id="postBetaModal">
+  <div class="modal">
+    <div class="modal-title">Share Beta 🎬</div>
+    <label class="modal-label">Route Name</label>
+    <input class="modal-input" id="betaRouteInput" placeholder="Which route?" oninput="validateBetaModal()"/>
+
+    <div class="modal-row">
+      <div>
+        <label class="modal-label">Grade</label>
+        <select class="modal-select" id="betaGradeSelect" onchange="validateBetaModal()">
+          <option value="">Grade</option>
+          <option>V0</option><option>V1</option><option>V2</option><option>V3</option>
+          <option>V4</option><option>V5</option><option>V6</option><option>V7</option>
+          <option>V8</option><option>V9</option><option>V10</option>
+        </select>
+      </div>
+      <div>
+        <label class="modal-label">Gym</label>
+        <input class="modal-input" id="betaGymInput" placeholder="Location" oninput="validateBetaModal()"/>
+      </div>
+    </div>
+
+    <label class="modal-label">Caption / Beta Tips</label>
+    <input class="modal-input" id="betaCaptionInput" placeholder="Share your beta for this route…" oninput="validateBetaModal()"/>
+
+    <label class="modal-label">Clip Type</label>
+    <div class="style-chips">
+      <div class="style-chip selected" onclick="toggleChip(this)">🎬 Full Send</div>
+      <div class="style-chip" onclick="toggleChip(this)">🔁 Beta Breakdown</div>
+      <div class="style-chip" onclick="toggleChip(this)">❓ Ask for Beta</div>
+    </div>
+
+    <div class="modal-btn-row">
+      <button class="modal-cancel" onclick="closeModal('postBetaModal')">Cancel</button>
+      <button class="modal-confirm" id="betaConfirmBtn" disabled onclick="submitBeta()">Post Clip 🎬</button>
+    </div>
+  </div>
+</div>
+
+<!-- Video Modal -->
+<div class="video-modal-overlay" id="videoModal" onclick="handleVideoOverlayClick(event)">
+  <div class="video-modal-inner">
+    <div class="video-modal-header">
+      <div>
+        <div class="video-modal-title" id="videoModalTitle">Route Name</div>
+        <div class="video-modal-meta" id="videoModalMeta">V6 · @user</div>
+      </div>
+      <button class="video-close-btn" onclick="closeVideoModal()">✕</button>
+    </div>
+    <div class="video-iframe-wrap">
+      <iframe id="videoIframe"
+        src=""
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+        allowfullscreen>
+      </iframe>
+    </div>
+    <div class="video-modal-tags" id="videoModalTags"></div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div id="toast"></div>
+
+<script>
+// ══════════════════════════════════════════
+// DATA
+// ══════════════════════════════════════════
+const GRADE_COLORS = {
+  'V0':'#6B9E4A','V1':'#6B9E4A','V2':'#4A8E9E',
+  'V3':'#4A8E9E','V4':'#E8C31A','V5':'#E8C31A',
+  'V6':'#E8531A','V7':'#E8531A','V8':'#BD1ABD',
+  'V9':'#BD1ABD','V10':'#E81A1A'
+};
+
+const USER_COLORS = ['#9B5DE5','#1ABDA8','#F0C040','#E8281A','#2ABD6E','#E8531A','#3B82F6'];
+
+// Real public YouTube bouldering videos (embeddable)
+// Unsplash free climbing photos as thumbnails
+const feedData = [
+  {
+    id:1, user:'crimp_queen', initial:'K', color:'#9B5DE5',
+    time:'8m ago', gym:'Brooklyn Boulders',
+    track:{
+      name:'The Sloper Problem', grade:'V6',
+      thumb:'https://images.unsplash.com/photo-1522163182402-834f871fd851?w=800&q=80',
+      ytId:'J6UGJwimCaU',  // real bouldering beta video
+      duration:'0:34', progress:28
+    },
+    caption:'Finally cracked the beta on this one — the secret is a huge left hand pinch at the 4th move. Stops you barn-dooring off. Took me 9 sessions 😤',
+    tags:['#sloper','#technique','#brooklynboulders'],
+    likes:47, liked:false,
+    comments:[
+      {user:'slab_master',initial:'M',color:'#1ABDA8',text:'Tried this yesterday — you\'re right about that pinch! Game changer.',time:'4m ago'},
+      {user:'rahul_sends',initial:'R',color:'#E8531A',text:'Been projecting this for 2 weeks, needed this beta 🙏',time:'2m ago'}
+    ],
+    reactions:[{e:'🔥',n:18,r:false},{e:'💡',n:12,r:false},{e:'👏',n:8,r:false}]
+  },
+  {
+    id:2, user:'slab_master', initial:'M', color:'#1ABDA8',
+    time:'45m ago', gym:'Movement LIC',
+    track:{
+      name:'Midnight Slab', grade:'V5',
+      thumb:'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&q=80',
+      ytId:'2RIGJiuVWFU',  // climbing footage
+      duration:'0:22', progress:55
+    },
+    caption:'Slab climbing is an art form. Quiet feet, trust your friction, breathe. Got this on attempt 3 today 🧘',
+    tags:['#slab','#footwork','#movementlic'],
+    likes:31, liked:false,
+    comments:[
+      {user:'beta_bandit',initial:'J',color:'#F0C040',text:'Slab heads rise up 🙌',time:'30m ago'}
+    ],
+    reactions:[{e:'🔥',n:9,r:false},{e:'🧘',n:14,r:false},{e:'👏',n:6,r:false}]
+  },
+  {
+    id:3, user:'beta_bandit', initial:'J', color:'#F0C040',
+    time:'2h ago', gym:'Cliffs of Id',
+    track:{
+      name:'Dynamo V7', grade:'V7',
+      thumb:'https://images.unsplash.com/photo-1564769662533-4f00a87b4056?w=800&q=80',
+      ytId:'IWFWKuFRuGk',  // dyno bouldering
+      duration:'0:47', progress:12,
+      live: true
+    },
+    caption:'FINALLY. 23 attempts over 6 sessions. The dyno felt impossible until I stopped trying to catch the hold and just flew into it. COMMIT TO THE MOVE.',
+    tags:['#dyno','#V7','#projectsent','#cliffsofid'],
+    likes:134, liked:false,
+    comments:[
+      {user:'crimp_queen',initial:'K',color:'#9B5DE5',text:'LETSSSS GOOO 🎉🎉🎉',time:'1h ago'},
+      {user:'slab_master',initial:'M',color:'#1ABDA8',text:'Witnessed this send live. The scream after... legendary.',time:'58m ago'}
+    ],
+    reactions:[{e:'🔥',n:67,r:false},{e:'🎉',n:44,r:false},{e:'💥',n:23,r:false}]
+  }
+];
+
+const sendsData = [
+  { name:'Compression Crack', gym:'Brooklyn Boulders', grade:'V7', style:'Compression', date:'Today', attempts:4 },
+  { name:'The Sloper Problem', gym:'Brooklyn Boulders', grade:'V6', style:'Sloper', date:'Yesterday', attempts:9 },
+  { name:'Pocket Rocket', gym:'Movement LIC', grade:'V5', style:'Pocket', date:'Mar 3', attempts:2 },
+  { name:'Crimpy AF', gym:'The Cliffs', grade:'V6', style:'Crimp', date:'Mar 1', attempts:6 },
+  { name:'Midnight Slab', gym:'Brooklyn Boulders', grade:'V4', style:'Slab', date:'Feb 28', attempts:1 },
+  { name:'Jug Haul', gym:'Brooklyn Boulders', grade:'V3', style:'Jug', date:'Feb 26', attempts:1 },
+  { name:'Dynamic Entry', gym:'Cliffs of Id', grade:'V7', style:'Dynamic', date:'Feb 24', attempts:12 },
+  { name:'Pinch Me', gym:'Movement LIC', grade:'V5', style:'Pinch', date:'Feb 22', attempts:3 },
+];
+
+const pyramidData = [
+  { grade:'V7', count:3, pct:30 },
+  { grade:'V6', count:8, pct:55 },
+  { grade:'V5', count:14, pct:75 },
+  { grade:'V4', count:22, pct:90 },
+  { grade:'V3', count:35, pct:100 },
+  { grade:'V2', count:42, pct:95 },
+  { grade:'V1', count:18, pct:65 },
+];
+
+const gymsData = [
+  { name:'Brooklyn Boulders', dist:'0.8mi', routes:120, emoji:'🏙️', color:'#1a1a3a', reset:'Reset 2d ago', rating:'4.8', members:'1.2k' },
+  { name:'Movement LIC', dist:'2.1mi', routes:95, emoji:'⚡', color:'#1a2a1a', reset:'Reset today', rating:'4.7', members:'980' },
+  { name:'Cliffs of Id', dist:'3.4mi', routes:140, emoji:'🏔️', color:'#2a1a1a', reset:'Reset 5d ago', rating:'4.9', members:'1.8k' },
+  { name:'The Gravity Vault', dist:'4.2mi', routes:80, emoji:'🌀', color:'#1a2a2a', reset:'Reset 1d ago', rating:'4.5', members:'650' },
+];
+
+const trendingData = [
+  { name:'Compression Crack', grade:'V7', color:'#E8531A', sends:34 },
+  { name:'Pocket Rocket', grade:'V5', color:'#E8C31A', sends:67 },
+  { name:'Dynamo V7', grade:'V7', color:'#E8531A', sends:22 },
+  { name:'Slab Life', grade:'V4', color:'#E8C31A', sends:89 },
+  { name:'The Crimper', grade:'V6', color:'#E8531A', sends:41 },
+];
+
+const suggestedData = [
+  { name:'Alex H.', handle:'crusher_alex', grade:'V9', color:'#E8281A' },
+  { name:'Priya M.', handle:'priya_climbs', grade:'V5', color:'#2ABD6E' },
+  { name:'Dan K.', handle:'dan_the_dynamo', grade:'V8', color:'#3B82F6' },
+];
+
+// ══════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════
+const state = {
+  attempts: 1,
+  selectedChips: [],
+  following: new Set(),
+};
+
+// ══════════════════════════════════════════
+// RENDER FEED
+// ══════════════════════════════════════════
+function renderFeed() {
+  const container = document.getElementById('feedPosts');
+  container.innerHTML = '';
+  feedData.forEach(post => {
+    const el = document.createElement('div');
+    el.className = 'post-card';
+    el.id = `post-${post.id}`;
+    el.innerHTML = buildPostHTML(post);
+    container.appendChild(el);
+  });
+}
+
+function buildPostHTML(post) {
+  const reactHTML = post.reactions.map((r,i) =>
+    `<button class="post-action-btn ${r.r?'active':''}" onclick="toggleReaction(${post.id},${i})" style="${r.r?'color:var(--orange)':''}">
+      ${r.e} ${r.n}
+    </button>`).join('');
+
+  const commentsHTML = post.comments.slice(0,2).map(c =>
+    `<div style="display:flex;gap:0.5rem;margin-bottom:0.4rem;">
+      <div class="user-avatar" style="width:24px;height:24px;font-size:0.58rem;background:${c.color};flex-shrink:0;">${c.initial}</div>
+      <div style="font-size:0.75rem;"><span style="font-weight:700;">${c.user}</span> <span style="color:var(--chalk2);">${c.text}</span></div>
+    </div>`).join('');
+
+  return `
+    <div class="post-header">
+      <div class="post-avatar" style="background:${post.color};">${post.initial}</div>
+      <div>
+        <div class="post-username">@${post.user}</div>
+        <div class="post-meta">${post.time} · ${post.gym}</div>
+      </div>
+      <div class="post-grade-badge" style="background:${GRADE_COLORS[post.track.grade] || '#E8531A'};">${post.track.grade}</div>
+    </div>
+    <div class="beta-clip" onclick="openVideoModal('${post.track.ytId}','${post.track.name}','${post.track.grade}','${post.user}')">
+      <div class="beta-clip-thumb" style="background-image:url('${post.track.thumb}');"></div>
+      <div class="beta-clip-scanlines"></div>
+      <div class="beta-clip-gradient"></div>
+      <div class="beta-clip-overlay">
+        <div class="play-circle">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg>
+        </div>
+        <div class="clip-eq"><span></span><span></span><span></span><span></span><span></span></div>
+      </div>
+      <div class="clip-route-tag">📍 ${post.track.name}</div>
+      ${post.track.live ? '<div class="clip-live-badge"><div class="live-dot"></div>LIVE</div>' : ''}
+      <div class="clip-bottom-bar">
+        <div class="clip-scrubber-wrap">
+          <div class="clip-scrubber-fill" style="width:${post.track.progress}%;"></div>
+        </div>
+        <div class="clip-time-row">
+          <span class="clip-time">0:${Math.floor(post.track.progress/100 * parseInt(post.track.duration.split(':')[1]))} / ${post.track.duration}</span>
+          <span class="clip-hd-badge">HD</span>
+        </div>
+      </div>
+    </div>
+    <div class="post-caption">${post.caption}</div>
+    <div class="post-tags">${post.tags.map(t=>`<span class="post-tag">${t}</span>`).join('')}</div>
+    ${post.comments.length ? `<div style="padding:0 1rem 0.6rem;">${commentsHTML}</div>` : ''}
+    <div class="post-actions">
+      ${reactHTML}
+      <button class="post-action-btn" onclick="toggleLike(${post.id})">
+        ${post.liked ? '❤️' : '🤍'} ${post.likes}
+      </button>
+      <button class="post-action-btn" onclick="showToast('💬 Comments for ${post.track.name}')">
+        💬 ${post.comments.length}
+      </button>
+      <button class="post-action-btn" onclick="showToast('🔗 Beta link copied!')" style="margin-left:auto;">
+        Share
+      </button>
+    </div>`;
+}
+
+function toggleLike(id) {
+  const post = feedData.find(p => p.id === id);
+  post.liked = !post.liked;
+  post.likes += post.liked ? 1 : -1;
+  document.getElementById(`post-${id}`).innerHTML = buildPostHTML(post);
+  showToast(post.liked ? '❤️ Liked!' : '🤍 Unliked');
+}
+
+function toggleReaction(id, idx) {
+  const post = feedData.find(p => p.id === id);
+  const r = post.reactions[idx];
+  r.r = !r.r;
+  r.n += r.r ? 1 : -1;
+  document.getElementById(`post-${id}`).innerHTML = buildPostHTML(post);
+}
+
+// ══════════════════════════════════════════
+// RENDER LOGBOOK
+// ══════════════════════════════════════════
+function renderLogbook() {
+  // Pyramid
+  const pyramidEl = document.getElementById('gradePyramid');
+  pyramidEl.innerHTML = pyramidData.map(row => `
+    <div class="pyramid-row">
+      <div class="pyramid-grade" style="color:${GRADE_COLORS[row.grade]}">${row.grade}</div>
+      <div class="pyramid-bar-wrap" onclick="showToast('${row.grade}: ${row.count} sends')">
+        <div class="pyramid-bar" style="width:${row.pct}%;background:${GRADE_COLORS[row.grade]}20;border-left:3px solid ${GRADE_COLORS[row.grade]};">
+          <span class="pyramid-bar-label">${row.count} sends</span>
+        </div>
+      </div>
+      <div class="pyramid-count">${row.count}</div>
+    </div>`).join('');
+
+  // Sends table
+  const tableEl = document.getElementById('sendsTable');
+  tableEl.innerHTML = sendsData.map(s => `
+    <div class="send-row" onclick="showToast('📝 ${s.name} — ${s.grade} at ${s.gym}')">
+      <div>
+        <div class="send-name">${s.name}</div>
+        <div class="send-location">${s.gym}</div>
+      </div>
+      <div><span class="send-grade-pill" style="background:${GRADE_COLORS[s.grade]}">${s.grade}</span></div>
+      <div class="send-style">${s.style}</div>
+      <div class="send-date">${s.date}</div>
+      <div class="send-attempts">${s.attempts}x</div>
+    </div>`).join('');
+}
+
+// ══════════════════════════════════════════
+// RENDER DISCOVER
+// ══════════════════════════════════════════
+function renderDiscover() {
+  document.getElementById('gymGrid').innerHTML = gymsData.map(g => `
+    <div class="gym-card" onclick="showToast('📍 Opening ${g.name}…')">
+      <div class="gym-card-hero" style="background:${g.color};">${g.emoji}</div>
+      <div class="gym-card-body">
+        <div class="gym-name">${g.name}</div>
+        <div class="gym-meta">📍 ${g.dist} away · ⭐ ${g.rating}</div>
+        <div class="gym-stats-row">
+          <div class="gym-stat-item"><span class="gym-stat-val">${g.routes}</span> routes</div>
+          <div class="gym-stat-item"><span class="gym-stat-val">${g.members}</span> members</div>
+        </div>
+        <div class="gym-reset-badge">🔄 ${g.reset}</div>
+      </div>
+    </div>`).join('');
+}
+
+// ══════════════════════════════════════════
+// RENDER PROFILE
+// ══════════════════════════════════════════
+function renderProfile() {
+  const clips = [
+    { thumb:'https://images.unsplash.com/photo-1522163182402-834f871fd851?w=400&q=80', ytId:'J6UGJwimCaU', grade:'V7', name:'Compression Crack' },
+    { thumb:'https://images.unsplash.com/photo-1564769662533-4f00a87b4056?w=400&q=80', ytId:'IWFWKuFRuGk', grade:'V6', name:'Dynamo V7' },
+    { thumb:'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&q=80', ytId:'2RIGJiuVWFU', grade:'V5', name:'Midnight Slab' },
+    { thumb:'https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=400&q=80', ytId:'J6UGJwimCaU', grade:'V7', name:'Pocket Rocket' },
+    { thumb:'https://images.unsplash.com/photo-1605296867304-46d5465a13f1?w=400&q=80', ytId:'IWFWKuFRuGk', grade:'V6', name:'Crimpy AF' },
+    { thumb:'https://images.unsplash.com/photo-1516592673884-4a382d1124c2?w=400&q=80', ytId:'2RIGJiuVWFU', grade:'V5', name:'Jug Haul' },
+  ];
+  document.getElementById('profileClips').innerHTML = clips.map(c => `
+    <div class="beta-clip" style="aspect-ratio:1;margin:0;cursor:pointer;" onclick="openVideoModal('${c.ytId}','${c.name}','${c.grade}','rahul_sends')">
+      <div class="beta-clip-thumb" style="background-image:url('${c.thumb}');"></div>
+      <div class="beta-clip-scanlines"></div>
+      <div class="beta-clip-gradient"></div>
+      <div class="beta-clip-overlay">
+        <div class="play-circle" style="width:36px;height:36px;">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg>
+        </div>
+        <div class="clip-eq"><span></span><span></span><span></span><span></span><span></span></div>
+      </div>
+      <div class="clip-route-tag" style="font-size:0.6rem;">${c.grade}</div>
+    </div>`).join('');
+}
+
+// ══════════════════════════════════════════
+// RENDER RAIL
+// ══════════════════════════════════════════
+function renderRail() {
+  document.getElementById('trendingRoutes').innerHTML = trendingData.map(r => `
+    <div class="trending-route" onclick="showToast('🔍 Viewing ${r.name} beta…')">
+      <div class="route-color-dot" style="background:${r.color};"></div>
+      <div class="route-name">${r.name}</div>
+      <div>
+        <div class="route-grade" style="color:${r.color}">${r.grade}</div>
+        <div class="route-sends">${r.sends} sends today</div>
+      </div>
+    </div>`).join('');
+
+  document.getElementById('suggestedClimbers').innerHTML = suggestedData.map((c,i) => `
+    <div class="suggested-climber">
+      <div class="sug-avatar" style="background:${c.color};">${c.name[0]}</div>
+      <div>
+        <div class="sug-name">${c.name}</div>
+        <div class="sug-grade">Peak: ${c.grade}</div>
+      </div>
+      <button class="follow-btn ${state.following.has(i)?'following':''}" id="follow-${i}" onclick="toggleFollow(${i}, '${c.name}')">
+        ${state.following.has(i) ? 'Following' : 'Follow'}
+      </button>
+    </div>`).join('');
+}
+
+function toggleFollow(i, name) {
+  if (state.following.has(i)) {
+    state.following.delete(i);
+    showToast(`Unfollowed ${name}`);
+  } else {
+    state.following.add(i);
+    showToast(`✅ Now following ${name}!`);
+  }
+  renderRail();
+}
+
+// ══════════════════════════════════════════
+// NAVIGATION
+// ══════════════════════════════════════════
+function navTo(screen, navEl, tabEl) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(`screen-${screen}`).classList.add('active');
+
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  if (navEl) navEl.classList.add('active');
+
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  const tab = tabEl || document.getElementById(`tab-${screen}`);
+  if (tab) tab.classList.add('active');
+
+  // Sync sidebar nav
+  document.querySelectorAll('.nav-item').forEach(n => {
+    if (n.textContent.trim().toLowerCase().startsWith(screen === 'logbook' ? 'logbook' :
+        screen === 'discover' ? 'discover' : screen === 'profile' ? 'my profile' : 'feed')) {
+      n.classList.add('active');
+    }
+  });
+}
+
+// ══════════════════════════════════════════
+// MODAL — LOG SEND
+// ══════════════════════════════════════════
+function changeAttempts(delta) {
+  state.attempts = Math.max(1, state.attempts + delta);
+  document.getElementById('attemptNum').textContent = state.attempts;
+}
+
+function toggleChip(el) {
+  el.classList.toggle('selected');
+}
+
+function validateLogModal() {
+  const name = document.getElementById('routeNameInput').value.trim();
+  const grade = document.getElementById('gradeSelect').value;
+  const gym = document.getElementById('gymInput').value.trim();
+  document.getElementById('logConfirmBtn').disabled = !(name && grade && gym);
+}
+
+function validateBetaModal() {
+  const route = document.getElementById('betaRouteInput').value.trim();
+  const grade = document.getElementById('betaGradeSelect').value;
+  const gym = document.getElementById('betaGymInput').value.trim();
+  const caption = document.getElementById('betaCaptionInput').value.trim();
+  document.getElementById('betaConfirmBtn').disabled = !(route && grade && gym && caption);
+}
+
+function submitSend() {
+  const name = document.getElementById('routeNameInput').value.trim();
+  const grade = document.getElementById('gradeSelect').value;
+  const gym = document.getElementById('gymInput').value.trim();
+  const attempts = state.attempts;
+  const styles = [...document.querySelectorAll('#styleChips .style-chip.selected')].map(c => c.textContent).join(', ');
+
+  // Add to sends data
+  sendsData.unshift({ name, gym, grade, style: styles || 'Mixed', date: 'Today', attempts });
+
+  // Add to feed
+  const newPost = {
+    id: Date.now(),
+    user: 'rahul_sends', initial: 'R', color: '#E8531A',
+    time: 'Just now', gym,
+    track: { name, grade, thumb:'https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=800&q=80', ytId:'J6UGJwimCaU', duration:'0:28', progress:0 },
+    caption: `Just sent ${name} at ${gym}! ${attempts === 1 ? 'Flash 🎉' : `Took ${attempts} attempts.`} ${document.getElementById('notesInput').value}`,
+    tags: [`#${grade}`, `#${gym.replace(/\s/g,'').toLowerCase()}`, '#sent'],
+    likes: 0, liked: false,
+    comments: [],
+    reactions: [{e:'🔥',n:0,r:false},{e:'🎉',n:0,r:false},{e:'👏',n:0,r:false}]
+  };
+  feedData.unshift(newPost);
+
+  closeModal('logSendModal');
+  document.getElementById('routeNameInput').value = '';
+  document.getElementById('gradeSelect').value = '';
+  document.getElementById('gymInput').value = '';
+  document.getElementById('notesInput').value = '';
+  document.querySelectorAll('#styleChips .style-chip').forEach(c => c.classList.remove('selected'));
+  state.attempts = 1;
+  document.getElementById('attemptNum').textContent = '1';
+  document.getElementById('logConfirmBtn').disabled = true;
+
+  renderFeed();
+  renderLogbook();
+  navTo('feed');
+  showToast(`🎉 ${name} (${grade}) logged! Posted to feed.`);
+}
+
+function submitBeta() {
+  const route = document.getElementById('betaRouteInput').value.trim();
+  const grade = document.getElementById('betaGradeSelect').value;
+  const gym = document.getElementById('betaGymInput').value.trim();
+  const caption = document.getElementById('betaCaptionInput').value.trim();
+
+  const newPost = {
+    id: Date.now(),
+    user: 'rahul_sends', initial: 'R', color: '#E8531A',
+    time: 'Just now', gym,
+    track: { name: route, grade, thumb:'https://images.unsplash.com/photo-1522163182402-834f871fd851?w=800&q=80', ytId:'IWFWKuFRuGk', duration:'0:21', progress:0 },
+    caption,
+    tags: [`#${grade}`, '#beta', `#${gym.replace(/\s/g,'').toLowerCase()}`],
+    likes: 0, liked: false,
+    comments: [],
+    reactions: [{e:'🔥',n:0,r:false},{e:'💡',n:0,r:false},{e:'👏',n:0,r:false}]
+  };
+  feedData.unshift(newPost);
+
+  closeModal('postBetaModal');
+  document.getElementById('betaRouteInput').value = '';
+  document.getElementById('betaGradeSelect').value = '';
+  document.getElementById('betaGymInput').value = '';
+  document.getElementById('betaCaptionInput').value = '';
+  document.getElementById('betaConfirmBtn').disabled = true;
+
+  renderFeed();
+  navTo('feed');
+  showToast('🎬 Beta clip posted!');
+}
+
+// ══════════════════════════════════════════
+// MODAL HELPERS
+// ══════════════════════════════════════════
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+document.querySelectorAll('.modal-overlay').forEach(o => {
+  o.addEventListener('click', e => { if (e.target === o) o.classList.remove('open'); });
+});
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    document.querySelectorAll('.modal-overlay.open').forEach(m => m.classList.remove('open'));
+    closeVideoModal();
+  }
+});
+
+// ══════════════════════════════════════════
+// SEARCH
+// ══════════════════════════════════════════
+function handleSearch(q) {
+  if (q.length > 2) showToast(`🔍 Searching for "${q}"…`);
+}
+
+// ══════════════════════════════════════════
+// VIDEO MODAL
+// ══════════════════════════════════════════
+function openVideoModal(ytId, routeName, grade, user) {
+  document.getElementById('videoModalTitle').textContent = routeName;
+  document.getElementById('videoModalMeta').textContent = `${grade} · @${user} · Beta Clip`;
+  document.getElementById('videoIframe').src =
+    `https://www.youtube.com/embed/${ytId}?autoplay=1&rel=0&modestbranding=1`;
+  document.getElementById('videoModalTags').innerHTML =
+    [`#${grade}`, '#betaclip', `#${routeName.replace(/\s/g,'').toLowerCase()}`]
+      .map(t => `<span class="post-tag">${t}</span>`).join('');
+  document.getElementById('videoModal').classList.add('open');
+}
+
+function closeVideoModal() {
+  document.getElementById('videoModal').classList.remove('open');
+  document.getElementById('videoIframe').src = ''; // stop video
+}
+
+function handleVideoOverlayClick(e) {
+  if (e.target === document.getElementById('videoModal')) closeVideoModal();
+}
+
+// ══════════════════════════════════════════
+// TOAST
+// ══════════════════════════════════════════
+let toastTimer;
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// ══════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════
+renderFeed();
+renderLogbook();
+renderDiscover();
+renderProfile();
+renderRail();
+</script>
+</body>
+</html>
