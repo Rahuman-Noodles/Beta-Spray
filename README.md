@@ -2,8 +2,6 @@
 
 A fully interactive product prototype for a social bouldering platform. Built as a PM portfolio piece to showcase user segmentation, jobs-to-be-done framework, and end-to-end feature design.
 
-**Live Demo:** [your-username.github.io/beta-spray](https://your-username.github.io/beta-spray)
-
 ---
 
 ## The Idea
